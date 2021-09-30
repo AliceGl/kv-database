@@ -57,8 +57,21 @@ fun writeInDatabase(name: String, text: String) {
 
 fun getValue(database: String, key: String?) {
     check(key != null) {"Not enough arguments"}
-    check(File(path(database)).exists()) { "Database $database doesn't exist"}
-    TODO()
+    check(File(path(database)).exists()) {"Database $database doesn't exist"}
+    var value : String? = null
+    val index = getIndex(database)
+    loop@ for (i in index - 1 downTo 0) {
+        for (line in File(getFilePath(database, i)).readLines().reversed()) {
+            val args = line.split(' ')
+            if (args[1] != key)
+                continue
+            if (args[0] == "+")
+                value = args[2]
+            break@loop
+        }
+    }
+    check(value != null) {"No key $key in database"}
+    println(value)
 }
 
 fun insertValueByKey(database: String, key: String?, value: String?) {
