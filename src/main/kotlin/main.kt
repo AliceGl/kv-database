@@ -48,6 +48,13 @@ fun deleteDatabase(name: String) {
     File(path(name)).delete()
 }
 
+fun writeInDatabase(name: String, text: String) {
+    val filePath = getFilePath(name, getIndex(name) - 1)
+    addLine(filePath, text)
+    if (File(filePath).length() > MaxSize)
+        createFile(name)
+}
+
 fun getValue(database: String, key: String?) {
     check(key != null) {"Not enough arguments"}
     check(File(path(database)).exists()) { "Database $database doesn't exist"}
@@ -57,18 +64,14 @@ fun getValue(database: String, key: String?) {
 fun insertValueByKey(database: String, key: String?, value: String?) {
     check(key != null && value != null) {"Not enough arguments"}
     check(File(path(database)).exists()) { "Database $database doesn't exist"}
-    val filePath = getFilePath(database, getIndex(database) - 1)
-    addLine(filePath, "$key $value")
-    if (File(filePath).length() > MaxSize)
-        createFile(database)
+    writeInDatabase(database, "+ $key $value")
 }
 
 fun removeKey(database: String, key: String?) {
     check(key != null) {"Not enough arguments"}
     check(File(path(database)).exists()) { "Database $database doesn't exist"}
-    TODO()
+    writeInDatabase(database, "- $key")
 }
-
 
 fun main(args: Array<String>) {
     val inputData = parseArgs(args)
