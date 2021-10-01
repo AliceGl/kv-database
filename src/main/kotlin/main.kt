@@ -55,6 +55,15 @@ fun writeInDatabase(name: String, text: String) {
         createFile(name)
 }
 
+fun clearDatabase(name: String) {
+    check (File(path(name)).exists()) { "Database $name doesn't exist"}
+    for (i in 0 until getIndex(name))
+        File(getFilePath(name, i)).delete()
+    File(getInfoPath(name)).delete()
+    File(getFilePath(name, 0)).createNewFile()
+    File(getInfoPath(name)).writeText("1")
+}
+
 fun mergeDatabase(name: String) {
     check (File(path(name)).exists()) { "Database $name doesn't exist"}
     val newLines : MutableList<String> = mutableListOf()
@@ -121,6 +130,7 @@ fun main(args: Array<String>) {
             )
             "remove" -> removeKey(inputData.database, inputData.key)
             "mergedb" -> mergeDatabase(inputData.database)
+            "cleardb" -> clearDatabase(inputData.database)
             else -> throw Exception("Wrong command")
         }
     } catch (exc: Exception) {
