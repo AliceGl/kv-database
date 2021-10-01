@@ -55,6 +55,27 @@ fun writeInDatabase(name: String, text: String) {
         createFile(name)
 }
 
+fun mergeDatabase(name: String) {
+    check (File(path(name)).exists()) { "Database $name doesn't exist"}
+    val newLines : MutableList<String> = mutableListOf()
+    val usedKeys : MutableSet<String> = mutableSetOf()
+    val index = getIndex(name)
+    for (i in index - 1 downTo 0) {
+        File(getFilePath(name, i)).readLines().reversed().forEach { line ->
+            val args = line.split(' ')
+            if (args[0] == "+" && !usedKeys.contains(args[1]))
+                newLines.add(line)
+            usedKeys.add(args[1])
+        }
+        File(getFilePath(name, i)).delete()
+    }
+    File(getFilePath(name, 0)).createNewFile()
+    File(getInfoPath(name)).writeText("1")
+    newLines.reversed().forEach { line ->
+        writeInDatabase(name, line)
+    }
+}
+
 fun getValue(database: String, key: String?) {
     check(key != null) {"Not enough arguments"}
     check(File(path(database)).exists()) {"Database $database doesn't exist"}
@@ -99,6 +120,7 @@ fun main(args: Array<String>) {
                 inputData.key, inputData.value
             )
             "remove" -> removeKey(inputData.database, inputData.key)
+            "mergedb" -> mergeDatabase(inputData.database)
             else -> throw Exception("Wrong command")
         }
     } catch (exc: Exception) {
