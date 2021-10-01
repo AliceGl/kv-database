@@ -85,7 +85,7 @@ fun mergeDatabase(name: String) {
     }
 }
 
-fun getValue(database: String, key: String?) {
+fun getValue(database: String, key: String?) : String {
     check(key != null) {"Not enough arguments"}
     check(File(path(database)).exists()) {"Database $database doesn't exist"}
     var value : String? = null
@@ -101,7 +101,7 @@ fun getValue(database: String, key: String?) {
         }
     }
     check(value != null) {"No key $key in database"}
-    println(value)
+    return value
 }
 
 fun insertValueByKey(database: String, key: String?, value: String?) {
@@ -123,7 +123,7 @@ fun main(args: Array<String>) {
         when (inputData.command) {
             "newdb" -> newDatabase(inputData.database)
             "deletedb" -> deleteDatabase(inputData.database)
-            "get" -> getValue(inputData.database, inputData.key)
+            "get" -> println(getValue(inputData.database, inputData.key))
             "insert" -> insertValueByKey(
                 inputData.database,
                 inputData.key, inputData.value
