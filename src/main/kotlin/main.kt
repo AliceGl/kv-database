@@ -88,14 +88,20 @@ fun removeKey(database: String, key: String?) {
 
 fun main(args: Array<String>) {
     val inputData = parseArgs(args)
-    check(inputData != null) {"No arguments"}
-    when (inputData.command) {
-        "newdb" -> newDatabase(inputData.database)
-        "deletedb" -> deleteDatabase(inputData.database)
-        "get" -> getValue(inputData.database, inputData.key)
-        "insert" -> insertValueByKey(inputData.database,
-            inputData.key, inputData.value)
-        "remove" -> removeKey(inputData.database, inputData.key)
-        else -> throw Exception("Wrong command")
+    try {
+        check(inputData != null) { "Not enough arguments" }
+        when (inputData.command) {
+            "newdb" -> newDatabase(inputData.database)
+            "deletedb" -> deleteDatabase(inputData.database)
+            "get" -> getValue(inputData.database, inputData.key)
+            "insert" -> insertValueByKey(
+                inputData.database,
+                inputData.key, inputData.value
+            )
+            "remove" -> removeKey(inputData.database, inputData.key)
+            else -> throw Exception("Wrong command")
+        }
+    } catch (exc: Exception) {
+        println("Error: " + exc.message)
     }
 }
