@@ -8,8 +8,10 @@ internal class Test1 {
             parseArgs(arrayOf("newdb", "name")))
         assertEquals(InputData("get", "db", "key", null),
             parseArgs(arrayOf("get", "db", "key")))
-        assertEquals(null,
+        assertEquals(InputData("newdb", null, null, null),
             parseArgs(arrayOf("newdb")))
+        assertEquals(null,
+            parseArgs(arrayOf()))
     }
 
     @Test
@@ -17,14 +19,13 @@ internal class Test1 {
         val name = "tempDatabaseForTest"
         newDatabase(listOf(name))
         try {
-            assertFails { newDatabase(listOf(name)) }
             insertValueByKey(listOf(name, "key1", "value1"))
             assertEquals("value1", getValue(listOf(name, "key1")))
-            assertFails { getValue(listOf(name, "key2")) }
+            assertNull(getValue(listOf(name, "key2")))
             insertValueByKey(listOf(name, "key2", "value2"))
             assertEquals("value2", getValue(listOf(name, "key2")))
             removeKey(listOf(name, "key1"))
-            assertFails { getValue(listOf(name, "key1")) }
+            assertNull(getValue(listOf(name, "key1")))
             insertValueByKey(listOf(name, "key2", "value3"))
             assertEquals("value3", getValue(listOf(name, "key2")))
             insertValueByKey(listOf(name, "key1", "value4"))
@@ -33,7 +34,7 @@ internal class Test1 {
             assertEquals("value4", getValue(listOf(name, "key1")))
             assertEquals("value3", getValue(listOf(name, "key2")))
             clearDatabase(listOf(name))
-            assertFails { getValue(listOf(name, "key1")) }
+            assertNull(getValue(listOf(name, "key1")))
         } finally {
             deleteDatabase(listOf(name))
         }

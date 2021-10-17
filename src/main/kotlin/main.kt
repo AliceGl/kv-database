@@ -3,7 +3,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
-data class InputData(val command: String, val database : String,
+data class InputData(val command: String, val database : String?,
                      val key : String?, val value : String?)
 
 const val MaxSize = (1 shl 16) - 1
@@ -14,8 +14,7 @@ fun addLine(filePath: String, line: String) {
 
 fun parseArgs(args: Array<String>) : InputData? {
     return InputData(args.getOrNull(0) ?: return null,
-    args.getOrNull(1) ?: return null,
-    args.getOrNull(2), args.getOrNull(3))
+    args.getOrNull(1), args.getOrNull(2), args.getOrNull(3))
 }
 
 fun path(name: String) = "database/$name"
@@ -35,7 +34,6 @@ fun createFile(name: String) {
 fun newDatabase (parameters: List<String?>) {
     val name = parameters[0]
     require(name != null)
-    check (!File(path(name)).exists()) { "Database $name already exist"}
     File(path(name)).mkdir()
     File(getInfoPath(name)).createNewFile()
     File(getFilePath(name, 0)).createNewFile()
@@ -45,7 +43,6 @@ fun newDatabase (parameters: List<String?>) {
 fun deleteDatabase(parameters: List<String?>) {
     val name = parameters[0]
     require(name != null)
-    check (File(path(name)).exists()) { "Database $name doesn't exist"}
     for (i in 0 until getIndex(name))
         File(getFilePath(name, i)).delete()
     File(getInfoPath(name)).delete()
@@ -62,7 +59,6 @@ fun writeInDatabase(name: String, text: String) {
 fun clearDatabase(parameters: List<String?>) {
     val name = parameters[0]
     require(name != null)
-    check (File(path(name)).exists()) { "Database $name doesn't exist"}
     for (i in 0 until getIndex(name))
         File(getFilePath(name, i)).delete()
     File(getInfoPath(name)).delete()
@@ -73,7 +69,6 @@ fun clearDatabase(parameters: List<String?>) {
 fun mergeDatabase(parameters: List<String?>) {
     val name = parameters[0]
     require(name != null)
-    check (File(path(name)).exists()) { "Database $name doesn't exist"}
     val newLines : MutableList<String> = mutableListOf()
     val usedKeys : MutableSet<String> = mutableSetOf()
     val index = getIndex(name)
@@ -93,12 +88,11 @@ fun mergeDatabase(parameters: List<String?>) {
     }
 }
 
-fun getValue(parameters: List<String?>) : String {
+fun getValue(parameters: List<String?>) : String? {
     val database = parameters[0]
     val key = parameters.getOrNull(1)
     require(database != null)
-    check(key != null) {"Not enough arguments"}
-    check(File(path(database)).exists()) {"Database $database doesn't exist"}
+    require(key != null)
     var value : String? = null
     val index = getIndex(database)
     loop@ for (i in index - 1 downTo 0) {
@@ -111,7 +105,6 @@ fun getValue(parameters: List<String?>) : String {
             break@loop
         }
     }
-    check(value != null) {"No key $key in database"}
     return value
 }
 
@@ -120,8 +113,8 @@ fun insertValueByKey(parameters: List<String?>) {
     val key = parameters.getOrNull(1)
     val value = parameters.getOrNull(2)
     require(database != null)
-    check(key != null && value != null) {"Not enough arguments"}
-    check(File(path(database)).exists()) { "Database $database doesn't exist"}
+    require(key != null)
+    require(value != null)
     writeInDatabase(database, "+ $key $value")
 }
 
@@ -129,12 +122,11 @@ fun removeKey(parameters: List<String?>) {
     val database = parameters[0]
     val key = parameters.getOrNull(1)
     require(database != null)
-    check(key != null) {"Not enough arguments"}
-    check(File(path(database)).exists()) { "Database $database doesn't exist"}
+    require(key != null)
     writeInDatabase(database, "- $key")
 }
 
-fun printValue(parameters: List<String?>) = println(getValue(parameters))
+fun printValue(parameters: List<String?>) = println(getValue(parameters) ?: "Key not found")
 
 val commandsMap = mapOf(
     "newdb" to ::newDatabase,
@@ -146,12 +138,53 @@ val commandsMap = mapOf(
     "cleardb" to ::clearDatabase
 )
 
+val numberOfArguments = mapOf(
+    "newdb" to 1,
+    "deletedb" to 1,
+    "get" to 2,
+    "insert" to 3,
+    "remove" to 2,
+    "mergedb" to 1,
+    "cleardb" to 1
+)
+
+val shouldDatabaseExist = mapOf(
+    "newdb" to false,
+    "deletedb" to true,
+    "get" to true,
+    "insert" to true,
+    "remove" to true,
+    "mergedb" to true,
+    "cleardb" to true
+)
+
+fun checkArguments(parameters: List<String?>, num: Int, dbExistence: Boolean) {
+    for (i in 0 until num)
+        if (parameters[i] == null)
+            throw NotEnoughArguments()
+    val database = parameters[0]
+    require(database != null)
+    if (dbExistence && !File(path(database)).exists())
+        throw DatabaseNotFound(database)
+    if (!dbExistence && File(path(database)).exists())
+        throw  DatabaseAlreadyExists(database)
+}
+
 fun main(args: Array<String>) {
     val inputData = parseArgs(args)
     try {
-        check(inputData != null) { "Not enough arguments" }
-        commandsMap[inputData.command]?.invoke(listOf(inputData.database, inputData.key, inputData.value)) ?:
-        throw Exception("Wrong command")
+        if (inputData == null)
+            throw NotEnoughArguments()
+        commandsMap[inputData.command]?.let {
+            val parameters = listOf(inputData.database, inputData.key, inputData.value)
+            val num = numberOfArguments[inputData.command]
+            val dbExistence = shouldDatabaseExist[inputData.command]
+            require(num != null)
+            require(dbExistence != null)
+            checkArguments(parameters, num, dbExistence)
+            it.invoke(parameters)
+        } ?:
+        throw WrongCommand()
     } catch (exc: Exception) {
         println("Error: " + exc.message)
     }
