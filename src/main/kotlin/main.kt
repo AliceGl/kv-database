@@ -32,7 +32,9 @@ fun createFile(name: String) {
     File(getInfoPath(name)).writeText((index + 1).toString())
 }
 
-fun newDatabase (name: String) {
+fun newDatabase (parameters: List<String?>) {
+    val name = parameters[0]
+    require(name != null)
     check (!File(path(name)).exists()) { "Database $name already exist"}
     File(path(name)).mkdir()
     File(getInfoPath(name)).createNewFile()
@@ -40,7 +42,9 @@ fun newDatabase (name: String) {
     File(getInfoPath(name)).writeText("1")
 }
 
-fun deleteDatabase(name: String) {
+fun deleteDatabase(parameters: List<String?>) {
+    val name = parameters[0]
+    require(name != null)
     check (File(path(name)).exists()) { "Database $name doesn't exist"}
     for (i in 0 until getIndex(name))
         File(getFilePath(name, i)).delete()
@@ -55,7 +59,9 @@ fun writeInDatabase(name: String, text: String) {
         createFile(name)
 }
 
-fun clearDatabase(name: String) {
+fun clearDatabase(parameters: List<String?>) {
+    val name = parameters[0]
+    require(name != null)
     check (File(path(name)).exists()) { "Database $name doesn't exist"}
     for (i in 0 until getIndex(name))
         File(getFilePath(name, i)).delete()
@@ -64,7 +70,9 @@ fun clearDatabase(name: String) {
     File(getInfoPath(name)).writeText("1")
 }
 
-fun mergeDatabase(name: String) {
+fun mergeDatabase(parameters: List<String?>) {
+    val name = parameters[0]
+    require(name != null)
     check (File(path(name)).exists()) { "Database $name doesn't exist"}
     val newLines : MutableList<String> = mutableListOf()
     val usedKeys : MutableSet<String> = mutableSetOf()
@@ -85,7 +93,10 @@ fun mergeDatabase(name: String) {
     }
 }
 
-fun getValue(database: String, key: String?) : String {
+fun getValue(parameters: List<String?>) : String {
+    val database = parameters[0]
+    val key = parameters.getOrNull(1)
+    require(database != null)
     check(key != null) {"Not enough arguments"}
     check(File(path(database)).exists()) {"Database $database doesn't exist"}
     var value : String? = null
@@ -104,35 +115,43 @@ fun getValue(database: String, key: String?) : String {
     return value
 }
 
-fun insertValueByKey(database: String, key: String?, value: String?) {
+fun insertValueByKey(parameters: List<String?>) {
+    val database = parameters[0]
+    val key = parameters.getOrNull(1)
+    val value = parameters.getOrNull(2)
+    require(database != null)
     check(key != null && value != null) {"Not enough arguments"}
     check(File(path(database)).exists()) { "Database $database doesn't exist"}
     writeInDatabase(database, "+ $key $value")
 }
 
-fun removeKey(database: String, key: String?) {
+fun removeKey(parameters: List<String?>) {
+    val database = parameters[0]
+    val key = parameters.getOrNull(1)
+    require(database != null)
     check(key != null) {"Not enough arguments"}
     check(File(path(database)).exists()) { "Database $database doesn't exist"}
     writeInDatabase(database, "- $key")
 }
 
+fun printValue(parameters: List<String?>) = println(getValue(parameters))
+
+val commandsMap = mapOf(
+    "newdb" to ::newDatabase,
+    "deletedb" to ::deleteDatabase,
+    "get" to ::printValue,
+    "insert" to ::insertValueByKey,
+    "remove" to ::removeKey,
+    "mergedb" to ::mergeDatabase,
+    "cleardb" to ::clearDatabase
+)
+
 fun main(args: Array<String>) {
     val inputData = parseArgs(args)
     try {
         check(inputData != null) { "Not enough arguments" }
-        when (inputData.command) {
-            "newdb" -> newDatabase(inputData.database)
-            "deletedb" -> deleteDatabase(inputData.database)
-            "get" -> println(getValue(inputData.database, inputData.key))
-            "insert" -> insertValueByKey(
-                inputData.database,
-                inputData.key, inputData.value
-            )
-            "remove" -> removeKey(inputData.database, inputData.key)
-            "mergedb" -> mergeDatabase(inputData.database)
-            "cleardb" -> clearDatabase(inputData.database)
-            else -> throw Exception("Wrong command")
-        }
+        commandsMap[inputData.command]?.invoke(listOf(inputData.database, inputData.key, inputData.value)) ?:
+        throw Exception("Wrong command")
     } catch (exc: Exception) {
         println("Error: " + exc.message)
     }
