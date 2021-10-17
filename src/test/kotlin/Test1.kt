@@ -1,3 +1,4 @@
+import kotlin.system.measureTimeMillis
 import kotlin.test.*
 
 internal class Test1 {
@@ -38,5 +39,19 @@ internal class Test1 {
         } finally {
             deleteDatabase(listOf(name))
         }
+    }
+
+    @Test
+    fun databaseEfficiencyTest() {
+        val name = "testEfficiencyDatabase"
+        newDatabase(listOf(name))
+        val elapsedTime = measureTimeMillis {
+            for (i in 0..10000)
+                insertValueByKey(listOf(name, "key$i", "value$i"))
+            for (i in 0..10000)
+                getValue(listOf(name, "key$i"))
+        }
+        deleteDatabase(listOf(name))
+        println("$elapsedTime ms") // 7921 ms
     }
 }
