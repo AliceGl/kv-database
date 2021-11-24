@@ -1,37 +1,30 @@
-# Курс основ программирования на МКН СПбГУ
-## Проект 2: key-value база данных
+# Basics of programming course: key-value database
 
-[Постановка задачи](./TASK.md)
+### Usage
+Utility to access database is implemented in file main.kt. Program accepts
+arguments from command line and prints result to standard output stream.
 
-### Описание работы программы
-Утилита для доступа к базе данных реализована в файле main.kt.
-Программа принимает аргументы из командной строки и выводит
-результат в стандартный поток вывода.
+The program is given a command and its parameters separated by spaces.
 
-На вход программе даётся команда, а затем её параметры через пробел.
+The operation logs are stored in the database files and to remove outdated
+information you can call the command "mergedb".
 
-В файлах базы данных хранятся логи операций и для удаления устаревшей
-информации о добавлении или удалении ключа необходимо иногда вызывать
-команду mergedb.
+### Commands to access database
 
-### Команды для управления базой данных
+* newdb \[database name] - create new database with given name
+* deletedb \[database name] - delete existing database
+* cleardb \[database name] - delete all keys from database
+* insert \[database name] \[key] \[value] - add pair key-value to database
+* remove \[database name] \[key] - remove key from database
+* get \[database name] \[key] - get value by key from database
+* mergedb \[database name] - reduce operation log by deleting outdated
+information about added and removed keys
 
-* newdb \[имя базы данных] - создаёт новую базу данных с заданным именем
-* deletedb \[имя базы данных] - удаляет существующую базу данных
-* cleardb \[имя базы данных] - удаляет все ключи из базы данных
-* insert \[имя базы данных] \[ключ] \[значение] - добавляет в базу данных
-пару ключ значение
-* remove \[имя базы данных] \[ключ] - удаляет ключ из базы данных
-* get \[имя базы данных] \[ключ] - получает значение из базы данных
-по ключу
-* mergedb \[имя базы данных] - сокращает логи операций удаляя устаревшую
-информацию о добавлении и удалении ключей
-
-### Примеры использования программы
+### Examples
 
 > newdb Database1
 
-Создана база данных Database1
+database Database1 created
 
 > insert Database1 key1 value1
 
@@ -43,9 +36,9 @@
 
 > get Database1 key2
 
-Вывод: **value3**
+Output: **value3**
 
-В базе данных хранятся логи:
+Logs in database files:
 
 <pre>
 + key1 value1
@@ -56,15 +49,15 @@
 
 > mergedb Database1
 
-Логи сократились до:
+Logs have been reduced to:
 <pre>
 + key2 value3
 </pre>
 
 > cleardb Database1
 
-Логи становятся пустыми
+All the logs are removed
 
 > deletedb Database1
 
-База данных Database1 удалена
+database Database1 deleted
