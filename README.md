@@ -1,23 +1,23 @@
 # Basics of programming course: key-value database
 
 ### Usage
-Utility to access database is implemented in file main.kt. Program accepts
-arguments from command line and prints result to standard output stream.
+Utility to access database is implemented in file main.kt. Program takes 
+arguments from command line and prints the result to the standard output stream.
 
 The program is given a command and its parameters separated by spaces.
 
-The operation logs are stored in the database files and to remove outdated
-information you can call the command "mergedb".
+The operation logs are stored in the database files, to remove outdated
+information the command "mergedb" can be called.
 
 ### Commands to access database
 
 * newdb \[database name] - create new database with given name
 * deletedb \[database name] - delete existing database
-* cleardb \[database name] - delete all keys from database
-* insert \[database name] \[key] \[value] - add pair key-value to database
-* remove \[database name] \[key] - remove key from database
-* get \[database name] \[key] - get value by key from database
-* mergedb \[database name] - reduce operation log by deleting outdated
+* cleardb \[database name] - delete all keys from the database
+* insert \[database name] \[key] \[value] - add the key-value pair to the database
+* remove \[database name] \[key] - remove key from the database
+* get \[database name] \[key] - get value by the key from the database
+* mergedb \[database name] - shrink operation log by deleting outdated 
 information about added and removed keys
 
 ### Examples
